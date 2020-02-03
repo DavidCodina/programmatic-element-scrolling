@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title> - </title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+    @import url('https://fonts.googleapis.com/css?family=Open+Sans');
+    @import url('https://fonts.googleapis.com/css?family=Montserrat:900&display=swap');
+
+    body {
+      background-color: floralWhite;
+      font-family: 'Open Sans';
+      position: relative;
+    }
+
+    main {
+      padding: 0 50px 200px 50px;
+    }
+
+    .article {
+      width: 100%;
+      margin: 0px auto 100px auto;
+      padding: 25px;
+      color: #333;
+      background-color: snow;
+      border: 2px solid #61DAFB;
+      border-radius: 1.5rem  !important;
+      opacity: 1;
+    }
+
+     p {
+       margin-bottom: 25px;
+      line-height: 1.75;
+    }
+
+    .fancy-h1 {
+      margin: 0;
+      padding: 0px 25px;
+      color: snow;
+      text-align: center;
+      font-size: 50px;
+      font-family: Montserrat;
+      letter-spacing: 3px;
+      line-height: 1.25;
+      -webkit-text-stroke-width: 1.5px;
+      -webkit-text-stroke-color: violet;
+      text-shadow: -3px 3px 6px rgba(0,0,0,0.15);
+    }
+
+    .fancy-h2 {
+      color: snow;
+      font-size: 40px;
+      font-family: Montserrat;
+      letter-spacing: 1px;
+      -webkit-text-stroke-width: 1px;
+      -webkit-text-stroke-color: violet;
+      text-shadow: -2px 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .parent-container {
+      height: 400px;
+      width:  800px;
+      margin: 0 auto;
+      background-color: white;
+      overflow:auto;
+      border: 2px solid #61DAFB;
+      border-radius: 25px;
+    }
+
+    .section {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 500px;
+      background-color: rgb(230,230,230);
+    }
+
+    .section:nth-of-type(1) { background-color: #FF355E; }
+    .section:nth-of-type(2) { background-color: #FF6037; }
+    .section:nth-of-type(3) { background-color: #66FF66; }
+    </style>
+  </head>
+
+
+  <body>
+    <header class="py-4">
+      <h1 class="fancy-h1">Programmatic Element Scrolling</h1>
+    </header>
+
+
+    <main>
+      <div class="text-center my-5">
+        <button id="scroll-down-button" class="btn btn-primary mr-2">Scroll Down</button>
+        <button id="scroll-up-button"   class="btn btn-primary mr-2">Scroll Up</button>
+      </div>
+
+
+      <div class="text-center my-5">
+        <button id="section-1-button" class="btn btn-primary mr-2">Section 1</button>
+        <button id="section-2-button" class="btn btn-primary mr-2">Section 2</button>
+        <button id="section-3-button" class="btn btn-primary">Section 3</button>
+      </div>
+
+
+      <div class='parent-container'>
+        <section id="section-1" class='section'>
+          <h2 class="fancy-h2 text-center py-4">Section 1</h2>
+        </section>
+
+        <section id="section-2" class='section'>
+          <h2 class="fancy-h2 text-center py-4">Section 2</h2>
+        </section>
+
+        <section id="section-3" class='section'>
+          <h2 class="fancy-h2 text-center py-4">Section 3</h2>
+        </section>
+      </div>
+    </main>
+
+
+    <!-- =======================================================================
+                              getRelativePosition()
+    ======================================================================== -->
+
+
+    <script>
+    function getRelativePosition(element, borderWidth = 0){
+      const parentPosition = element.parentNode.getBoundingClientRect();
+      const childPosition  = element.getBoundingClientRect();
+      const position       = {};
+
+      position.top    = childPosition.top    - parentPosition.top + element.parentNode.scrollTop - borderWidth;
+      position.right  = childPosition.right  - parentPosition.right; // + borderWidth; // ???
+      position.bottom = childPosition.bottom - parentPosition.bottom - borderWidth;
+      position.left   = childPosition.left   - parentPosition.left;  // - borderWidth; // ???
+
+      return position;
+    }
+
+
+    /* =========================================================================
+                    Easing Equations : http://www.gizma.com/easing/
+    ========================================================================= */
+
+
+    function linearTween(t, b, c, d){
+	     return c * t/d + b;
+    }
+
+
+    function easeInQuad(t, b, c, d){
+	     t /= d;
+	    return c*t*t + b;
+    }
+
+
+    function easeOutQuad(t, b, c, d){
+	    t /= d;
+	    return -c * t*(t-2) + b;
+    }
+
+
+    function easeInOutQuad(t, b, c, d){
+    	t /= d/2;
+    	if (t < 1) return c/2*t*t + b;
+    	t--;
+      return -c/2 * (t*(t-2) - 1) + b;
+    }
+
+
+    /* =========================================================================
+                                scrollTo()
+    ========================================================================= */
+
+
+    function scrollTo(parentContainer, to, duration, callback) {
+      const startPosition    = parentContainer.scrollTop;
+      const distanceToScroll = to - startPosition;
+      const startTime        = performance.now();
+
+
+      function animateScroll(){
+        const now       = performance.now();
+        let timeElapsed = (now - startTime) / 1000;
+
+        if (timeElapsed > duration){ timeElapsed = duration; }
+
+
+        // parentContainer.scrollTop = linearTween(timeElapsed,   startPosition, distanceToScroll, duration);
+        // parentContainer.scrollTop = easeInQuad(timeElapsed,    startPosition, distanceToScroll, duration);
+        // parentContainer.scrollTop = easeOutQuad(timeElapsed,   startPosition, distanceToScroll, duration);
+        parentContainer.scrollTop = easeInOutQuad(timeElapsed, startPosition, distanceToScroll, duration);
+
+        if (timeElapsed < duration){ window.requestAnimationFrame(animateScroll); }
+        else { callback && callback(); }
+      };
+
+      animateScroll();
+    }
+
+
+    /* =========================================================================
+                                scrollToElement()
+    ========================================================================= */
+
+
+    function scrollToElement(parentContainer, element, duration, borderWidth = 0){
+      const position = getRelativePosition(element, borderWidth);
+      scrollTo( parentContainer, position.top , duration, () => {});
+    }
+
+
+    /* =========================================================================
+                          scrollDown() & scrollUp()
+    ========================================================================= */
+
+
+    function scrollDown(parentContainer, duration){
+      const distanceToScroll = 50;
+      scrollTo(parentContainer, parentContainer.scrollTop + distanceToScroll , duration,
+        () => {
+          //console.log(parentContainer.scrollTop);
+
+          //Snap BACK to an increment of distanceToScroll
+          if ( (parentContainer.scrollTop % distanceToScroll) !== 0){
+            //console.log("parentContainer.scrollTop is out of sync!!! ", parentContainer.scrollTop);
+            parentContainer.scrollTop = Math.floor(parentContainer.scrollTop / distanceToScroll) * distanceToScroll;
+            //console.log(parentContainer.scrollTop)
+          }
+        }
+      );
+    }
+
+
+    function scrollUp(parentContainer, duration){
+      const distanceToScroll = 50;
+      scrollTo(parentContainer, parentContainer.scrollTop - distanceToScroll , duration,
+        () => {
+          //console.log(parentContainer.scrollTop);
+
+          //Snap BACK to an increment of distanceToScroll
+          if ( (parentContainer.scrollTop % distanceToScroll) !== 0){
+            //console.log("parentContainer.scrollTop is out of sync!!! ", parentContainer.scrollTop);
+            parentContainer.scrollTop = Math.ceil(parentContainer.scrollTop / distanceToScroll) * distanceToScroll;
+            //console.log(parentContainer.scrollTop)
+          }
+        }
+      );
+    }
+
+
+    /* =============================================================================
+                              Event Listeners
+    ============================================================================= */
+
+
+    document.addEventListener("DOMContentLoaded", function(){
+      const parentContainer  = document.querySelector('.parent-container');
+      const section1         = document.querySelector('#section-1');
+      const section2         = document.querySelector('#section-2');
+      const section3         = document.querySelector('#section-3');
+      const section1Button   = document.getElementById('section-1-button');
+      const section2Button   = document.getElementById('section-2-button');
+      const section3Button   = document.getElementById('section-3-button');
+
+
+      section1Button.addEventListener('click', () => scrollToElement(parentContainer, section1 , 0.5, 2));
+      section2Button.addEventListener('click', () => scrollToElement(parentContainer, section2 , 0.5, 2));
+      section3Button.addEventListener('click', () => scrollToElement(parentContainer, section3 , 0.5, 2));
+
+
+      /* ========================
+        To scrollDown & scrollUp
+      ======================== */
+
+
+      const scrollDownButton = document.getElementById('scroll-down-button');
+      const scrollUpButton   = document.getElementById('scroll-up-button');
+
+
+      let scrollDownInterval;
+      let scrollUpInterval;
+
+
+      //The 0.05s / 50ms timing used with vertical distances of 50px seems to be the sweet spot.
+
+      //Don't call scrollDown faster than the duration passed to scrollDown
+      //Otherwise, the scrolling will get out of sync.
+      //A good rule of thumb seems to be to wait at least 20ms
+      scrollDownButton.addEventListener('mousedown', () => scrollDownInterval = setInterval(() => scrollDown(parentContainer, 0.05), 70));
+      scrollDownButton.addEventListener('mouseup',   () => clearInterval(scrollDownInterval));
+      scrollUpButton.addEventListener('mousedown',   () => scrollUpInterval = setInterval(() => scrollUp(parentContainer, 0.05), 70));
+      scrollUpButton.addEventListener('mouseup',     () => clearInterval(scrollUpInterval));
+
+    }); //End of: document.addEventListener("DOMContentLoaded", function(){ ... }
+    </script>
+  </body>
+</html>
